@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  项目级 Maven 配置。
+
+  为什么需要这个文件：机器全局的 $MAVEN_HOME/conf/settings.xml 会强制所有
+  下载都经过一个内部 Nexus（maven.teld.cn），而当前环境访问不到它，
+  因此构建在开始前就会失败。本文件只为这个项目覆盖镜像，
+  本地仓库仍保留 Maven 的默认位置（~/.m2/repository）。
+
+  如果你回到了公司内网，删除整个 .mvn/ 目录即可。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>aliyun-public</id>
+            <name>Aliyun public (proxies Maven Central)</name>
+            <mirrorOf>*</mirrorOf>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </mirror>
+    </mirrors>
+
+</settings>

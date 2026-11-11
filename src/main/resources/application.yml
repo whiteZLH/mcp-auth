@@ -1,0 +1,100 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        # 使用不同的名称，避免多个本地 Spring 应用在 localhost 上争抢 JSESSIONID。
+        name: MCP_AUTH_SESSIONID
+
+spring:
+  application:
+    name: mcp-auth
+  ai:
+    mcp:
+      server:
+        # Streamable HTTP 传输（MCP 规范 2025-06-18）。默认值会是旧式的 SSE/STDIO 接线方式。
+        protocol: STREAMABLE
+        name: mcp-auth-server
+        version: 1.0.0
+        type: SYNC
+        instructions: "Demo MCP server protected by OAuth 2.1. Every request needs a bearer token issued by this app's own authorization server."
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
+        streamable-http:
+          mcp-endpoint: /mcp
+
+app:
+  # 面向用户的登录。把 client-id 留空则仅以演示账号运行。
+  # 钉钉：在 https://open-dev.dingtalk.com 创建应用，把 AppKey/AppSecret 填到这里，并在
+  # 开发配置 > 安全设置 > 重定向URL 下添加重定向域名 http://localhost:8080。
+  login:
+    dingtalk:
+      client-id: ${DINGTALK_CLIENT_ID:}
+      client-secret: ${DINGTALK_CLIENT_SECRET:}
+      # 钉钉是 OAuth 2.0 而不是 OIDC，因此这里逐个写出各端点，而不使用 issuer-uri。
+      # prompt=consent 是必需的，且没有对应的 Spring 属性。
+      authorize-uri: https://login.dingtalk.com/oauth2/auth?prompt=consent
+      token-uri: https://api.dingtalk.com/v1.0/oauth2/userAccessToken
+      user-info-uri: https://api.dingtalk.com/v1.0/contact/users/me
+      user-name-attribute: unionId
+
+  security:
+    issuer: http://localhost:8080
+
+    # 本 MCP 服务器接受的地址。每个访问令牌签发时都会把全部地址放进 "aud"，
+    # 资源服务器接受匹配其中任意一个的令牌。第一项会作为 "resource" 公布在
+    # RFC 9728 元数据中。当其他机器上的 agent 连接本服务器时，在这里加上你的
+    # 局域网 IP 或公网主机名。
+    resource-uris:
+      - http://localhost:8080/mcp
+      - http://127.0.0.1:8080/mcp
+
+    scopes:
+      - mcp.tools.read
+      - mcp.tools.call
+
+    # 本演示的最终用户，显示在登录页（/login）。
+    demo-user:
+      name: user
+      password: password
+
+    # 刷新令牌链的绝对生命周期，从首次签发之时开始计算。轮换会重置单个令牌的 TTL，
+    # 所以如果没有这个上限，一直刷新的客户端就永远不会被登出。
+    # 设为 0 可关闭该上限。
+    refresh-token-max-lifetime: 30d
+
+    # 在任何人连接之前就已存在的客户端。使用动态客户端注册的 agent 不需要条目；
+    # 只有必须分配固定 client_id 的 agent 才需要添加。
+    # 未指定 "scopes" 的客户端会获得上面所有作用域。
+    clients:
+      - client-id: mcp-cli
+        client-name: mcp-auth CLI client
+        redirect-uris:
+          - http://127.0.0.1:8080/callback
+          - http://localhost:8080/callback
+          # MCP Inspector（npx @modelcontextprotocol/inspector）的默认回调地址
+          - http://localhost:6274/oauth/callback
+      # 示例：只接受预先签发 client id 的 agent，例如 VS Code 的
+      # "oauth": { "clientId": ... } 配置块。回环地址的重定向 URI 可匹配任意端口。
+      # - client-id: vscode
+      #   client-name: VS Code
+      #   redirect-uris:
+      #     - http://127.0.0.1:33418
+      #     - http://127.0.0.1:33418/
+      #   scopes:
+      #     - mcp.tools.read
+
+logging:
+  # 日志写入文件，这样即使应用从 IDE 控制台启动，也能检查整个流程。
+  file:
+    name: logs/mcp-auth.log
+  level:
+    com.example.mcpauth: DEBUG
+    org.springframework.security: INFO
+    # 临时开启，仅在接入桌面客户端期间使用：可显示令牌或 authorize 请求被拒绝的确切原因。
+    # 等所有客户端都能连上后改回 INFO。
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.web.authentication: DEBUG

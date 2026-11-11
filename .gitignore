@@ -1,0 +1,118 @@
+# ---------------------------------------------------------------------------
+# mcp-auth — Git 忽略规则
+# 技术栈：Java 21 / Maven / Spring Boot 4 / Spring AI MCP
+# ---------------------------------------------------------------------------
+
+# ===== 构建产物 =====
+target/
+build/
+out/
+bin/
+dependency-reduced-pom.xml
+*.jar
+# Maven Wrapper 需要提交（放在 *.jar 之后才能生效）
+!**/maven-wrapper.jar
+*.war
+*.ear
+*.nar
+*.class
+
+# ===== 日志与运行时产物 =====
+logs/
+*.log
+*.log.*
+*.pid
+*.pid.lock
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
+*.jfr
+*.heapdump
+
+# ===== 测试与覆盖率 =====
+surefire-reports/
+failsafe-reports/
+jacoco.exec
+*.exec
+site/
+
+# ===== 本地配置与机密（切勿提交）=====
+# 本地覆盖配置：application-local.yml / application-dev.yml 等按需放开
+application-local.yml
+application-local.yaml
+application-local.properties
+*-local.yml
+*-local.yaml
+*-local.properties
+.env
+.env.*
+!.env.example
+*.p12
+*.jks
+*.keystore
+*.pfx
+*.pem
+*.key
+secrets/
+# 注意：.mvn/settings.xml 当前只包含镜像配置（无凭据），因此不忽略；
+# 若日后在其中写入 <server> 账号密码，请取消下面一行的注释。
+# .mvn/settings.xml
+
+# ===== IDE / 编辑器 =====
+.idea/
+*.iml
+*.ipr
+*.iws
+*.hprof.dump
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.apt_generated/
+.sts4-cache/
+.springBeans
+*.launch
+nbproject/private/
+.nb-gradle/
+.history/
+
+# ===== 操作系统 =====
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# ===== 临时文件 =====
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+*.crdownload
+*.part
+tmp/
+temp/
+
+# ===== 其他工具链 =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.gradle/
+.idea_modules/
+*.sbt/
+.metals/
+.bloop/
+.vscode-test/
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties.bak
